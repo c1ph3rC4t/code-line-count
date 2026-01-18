@@ -1,0 +1,43 @@
+[package]
+name = "code-line-count"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["c1ph3rC4t"]
+categories = ["command-line-utilities", "development-tools"]
+description = "Fast line counter specializing in code."
+homepage = "https://github.com/c1ph3rC4t/code-line-count"
+keywords = ["loc", "lines", "code", "count", "cli"]
+license = "MPL-2.0"
+readme = "README.md"
+repository = "https://github.com/c1ph3rC4t/code-line-count"
+
+[[bin]]
+name = "clc"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5.54", features = ["derive"] }
+ignore = "0.4.25"
+memchr = "2.7.6"
+phf = { version = "0.13.1", features = ["macros"] }
+regex = "1.12.2"
+thiserror = "2.0.18"
+
+[lints.clippy]
+pedantic = "warn"
+nursery = "warn"
+unwrap_used = "warn"
+expect_used = "warn"
+
+[profile.release]
+opt-level = 3
+debug = false
+strip = "none"
+debug-assertions = false
+overflow-checks = true
+lto = "fat"
+panic = "unwind"
+incremental = false
+codegen-units = 1
+rpath = false
