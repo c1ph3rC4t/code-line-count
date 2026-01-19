@@ -5,7 +5,7 @@ Fast line counter for code files.
 ## Installation
 
 ```sh
-cargo install --path .
+cargo install code-line-count
 ```
 
 ## Usage
