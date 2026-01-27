@@ -113,12 +113,11 @@ checksum = "c3e64b0cc0439b12df2fa678eae89a1c56a529fd067a9115f7827f1fffd22b32"
 
 [[package]]
 name = "code-line-count"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "clap",
  "ignore",
  "memchr",
- "phf",
  "regex",
  "thiserror",
 ]
@@ -153,12 +152,6 @@ name = "crossbeam-utils"
 version = "0.8.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
-
-[[package]]
-name = "fastrand"
-version = "2.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
 name = "globset"
@@ -218,49 +211,6 @@ name = "once_cell_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
-
-[[package]]
-name = "phf"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1562dc717473dbaa4c1f85a36410e03c047b2e7df7f45ee938fbef64ae7fadf"
-dependencies = [
- "phf_macros",
- "phf_shared",
- "serde",
-]
-
-[[package]]
-name = "phf_generator"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "135ace3a761e564ec88c03a77317a7c6b80bb7f7135ef2544dbe054243b89737"
-dependencies = [
- "fastrand",
- "phf_shared",
-]
-
-[[package]]
-name = "phf_macros"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "812f032b54b1e759ccd5f8b6677695d5268c588701effba24601f6932f8269ef"
-dependencies = [
- "phf_generator",
- "phf_shared",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "phf_shared"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e57fef6bc5981e38c2ce2d63bfa546861309f875b8a75f092d1d54ae2d64f266"
-dependencies = [
- "siphasher",
-]
 
 [[package]]
 name = "proc-macro2"
@@ -346,12 +296,6 @@ dependencies = [
  "quote",
  "syn",
 ]
-
-[[package]]
-name = "siphasher"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56199f7ddabf13fe5074ce809e7d3f42b42ae711800501b5b16ea82ad029c39d"
 
 [[package]]
 name = "strsim"

@@ -1,6 +1,6 @@
 [package]
 name = "code-line-count"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 rust-version = "1.85"
 authors = ["c1ph3rC4t"]
@@ -20,7 +20,6 @@ path = "src/main.rs"
 clap = { version = "4.5.55", features = ["derive"] }
 ignore = "0.4.25"
 memchr = "2.7.6"
-phf = { version = "0.13.1", features = ["macros"] }
 regex = "1.12.2"
 thiserror = "2.0.18"
 
@@ -36,7 +35,7 @@ expect_used = "warn"
 [profile.release]
 opt-level = 3
 debug = false
-strip = "none"
+strip = "symbols"
 debug-assertions = false
 overflow-checks = true
 lto = "fat"
