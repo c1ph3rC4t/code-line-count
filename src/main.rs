@@ -4,7 +4,16 @@
 //
 // Copyright (c) 2026 c1ph3rC4t
 
+//! Code line count (clc)
+//!
+//! Counts the total non-empty lines of code in files matching given categories
+//! or file extensions, recursively.
+//!
+//! Run `clc --help` for usage and options.
+
+#[doc(hidden)]
 mod cats;
+#[doc(hidden)]
 mod partition_n;
 
 use clap::Parser;
@@ -103,6 +112,7 @@ define_categories! {
     },
 }
 
+#[doc(hidden)]
 #[derive(Parser)]
 #[command(
     disable_help_flag = true,
@@ -114,15 +124,25 @@ struct Args {
     args: Vec<String>,
 }
 
+/// Errors that can occur during CLC operations.
 #[derive(Debug, Error)]
-enum CLCError {
-    #[error("{0}")]
+pub enum CLCError {
+    /// Regex compilation or matching error.
+    ///
+    /// Derived from [`regex::Error`]
+    #[error("Regex error: {0}")]
     RegexError(#[from] regex::Error),
-    #[error("{0}")]
+
+    /// I/O operation error.
+    ///
+    /// Derived from [`std::io::Error`]
+    #[error("I/O error: {0}")]
     IOError(#[from] std::io::Error),
 }
 
-fn gen_help() -> String {
+/// Generates a help string for clc
+#[must_use]
+pub fn gen_help() -> String {
     let mut cat_strings = vec![];
     let mut ext_strings = vec![];
     let mut cat_list = "Categories:".to_string();
@@ -167,22 +187,49 @@ fn gen_help() -> String {
         );
     }
 
-    format!("Usage: clc [FLAG OR CATEGORY OR FILE EXTENSION]...
-Counts the total non-empty lines of all files relevant to any CATEGORY or FILE EXTENSION.
-If an argument starts with a dot it is seen as a FILE EXTENSION, if it starts with a dash it is seen as a FLAG, otherwise it is seen as a CATEGORY.
+    format!(
+        "Usage: clc [OPTION | CATEGORY | .EXT]...
+Count non-empty lines of code in files matching CATEGORY or .EXT, recursively.
+Example: clc -g .py web -d2 .rs
 
-Flags:
+Arguments may be given in any order:
+  starting with '-'         option
+  starting with '.'         file extension
+  otherwise                 category
 
-  -h, --hidden              include hidden directories and files in the search
-  -g, --git                 respect .gitignore
-  -d#                       sets search depth to #
-  -v, --version             display version and exit
+Options:
       --help                display this help text and exit
+  -v, --version             display version and exit
+  -dN                       set maximum search depth to N
+  -g, --git                 respect .gitignore files
+  -h, --hidden              include hidden files and directories
 
-{cat_list}")
+{cat_list}"
+    )
 }
 
-fn count_lines(
+/// Counts non-empty lines of code.
+///
+/// Uses [`WalkBuilder`] from the [`ignore`] crate to create
+/// a multi-threaded code line counter.
+///
+/// # Errors
+///
+/// Returns [`CLCError`] if regex compilation fails or if file I/O
+/// operations fail (e.g., permission denied, unable to read file contents).
+///
+/// # Example
+///
+/// ```
+/// let lines = count_lines(
+///     PathBuf::from("./"),
+///     &["rs", "hs"],
+///     true,
+///     true,
+///     None,
+/// )?;
+/// ```
+pub fn count_lines(
     path: PathBuf,
     exts: &[&str],
     hidden: bool,
@@ -233,6 +280,7 @@ fn count_lines(
     Ok(rx.iter().map(|n| n as u128).sum())
 }
 
+#[doc(hidden)]
 fn main() -> Result<(), CLCError> {
     let mut exts: Vec<&str> = vec![];
     let mut hidden = false;
@@ -266,7 +314,9 @@ fn main() -> Result<(), CLCError> {
             }
             b"-h" | b"--hidden" => hidden = true,
             b"-g" | b"--git" => respect_git_ignore = true,
-            flag if depth_re.is_match(flag) => maxdepth = Some(2),
+            flag_bytes if depth_re.is_match(flag_bytes) => {
+                maxdepth = flag[2..].parse().ok();
+            }
             _ => {
                 println!(
                     "clc: flag \"{flag}\" not found\nTry 'clc --help' for more information on how to use clc."

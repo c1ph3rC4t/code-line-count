@@ -17,12 +17,15 @@ name = "clc"
 path = "src/main.rs"
 
 [dependencies]
-clap = { version = "4.5.54", features = ["derive"] }
+clap = { version = "4.5.55", features = ["derive"] }
 ignore = "0.4.25"
 memchr = "2.7.6"
 phf = { version = "0.13.1", features = ["macros"] }
 regex = "1.12.2"
 thiserror = "2.0.18"
+
+[lints.rust]
+missing_docs = "warn"
 
 [lints.clippy]
 pedantic = "warn"
