@@ -41,7 +41,7 @@ function begin_check {
     if $FULL_QUIET; then
         return 0
     fi
-    echo -e " \x1b[1m\x1b[34m::\x1b[0m\x1b[1m [$DONE_CHECKS/$TOTAL_CHECKS] $@\x1b[0m" > /dev/tty
+    echo -e " \x1b[1m\x1b[34m::\x1b[0m\x1b[1m [$DONE_CHECKS/$TOTAL_CHECKS] $@\x1b[0m"
     CURRENT_CHECK=$@
 }
 
@@ -50,18 +50,18 @@ function end_check {
     if $FULL_QUIET; then
         return 0
     fi
-    echo -e " \x1b[1m\x1b[34m::\x1b[0m\x1b[1m $CURRENT_CHECK done\x1b[0m\n" > /dev/tty
+    echo -e " \x1b[1m\x1b[34m::\x1b[0m\x1b[1m $CURRENT_CHECK done\x1b[0m\n"
 }
 
 function success {
     if $FULL_QUIET; then
         return 0
     fi
-    echo -e " \x1b[1m\x1b[32m::\x1b[0m\x1b[1m [$DONE_CHECKS/$TOTAL_CHECKS] All checks passed\x1b[0m" > /dev/tty
+    echo -e " \x1b[1m\x1b[32m::\x1b[0m\x1b[1m [$DONE_CHECKS/$TOTAL_CHECKS] All checks passed\x1b[0m"
 }
 
 function run_checks {
-    trap 'handle_error > /dev/tty' ERR
+    trap 'handle_error' ERR
 
     # Formatting
     begin_check Formatting
@@ -112,10 +112,10 @@ function run_checks {
 }
 
 function handle_error {
-    echo -e "\n \x1b[1m\x1b[31m::\x1b[0m\x1b[1m [$DONE_CHECKS/$TOTAL_CHECKS] $CURRENT_CHECK failed\x1b[0m\n" > /dev/tty
+    echo -e "\n \x1b[1m\x1b[31m::\x1b[0m\x1b[1m [$DONE_CHECKS/$TOTAL_CHECKS] $CURRENT_CHECK failed\x1b[0m\n"
 }
 
-trap 'handle_error > /dev/tty' ERR
+trap 'handle_error' ERR
 
 if $QUIET; then
     if $FULL_QUIET; then
