@@ -2,7 +2,7 @@
 name = "code-line-count"
 version = "0.2.1"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.93"
 authors = ["c1ph3rC4t"]
 categories = ["command-line-utilities", "development-tools"]
 description = "Fast line counter specializing in code."
