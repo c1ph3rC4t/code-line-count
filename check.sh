@@ -10,6 +10,7 @@ set -euo pipefail
 
 PUSH_CHECK=false
 STRICT=false
+CI_FLAG=false
 QUIET=false
 FULL_QUIET=false
 OPEN_DOCS=false
@@ -18,6 +19,7 @@ for arg in "$@"; do
     case $arg in
         -p | --push-check) PUSH_CHECK=true ;;
         -s | --strict) STRICT=true ;;
+        -c | --ci) CI_FLAG=true ;;
         -q | --quiet) QUIET=true ;;
         -Q | --full-quiet) QUIET=true; FULL_QUIET=true ;;
         -o | --open-docs) OPEN_DOCS=true ;;
@@ -117,12 +119,16 @@ function handle_error {
 
 trap 'handle_error' ERR
 
-if $QUIET; then
-    if $FULL_QUIET; then
-        run_checks > /dev/null 2>&1
-    else
-        run_checks > /dev/null
-    fi
+if [ "${CI:-}" = "true" ] || $CI_FLAG; then
+    run_checks > /dev/stderr
 else
-    run_checks
+    if $QUIET; then
+        if $FULL_QUIET; then
+            run_checks > /dev/null 2>&1
+        else
+            run_checks > /dev/null
+        fi
+    else
+        run_checks
+    fi
 fi
