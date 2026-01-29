@@ -5,42 +5,124 @@
 #
 # Copyright (c) 2026 c1ph3rC4t
 
+# Config
 set -euo pipefail
 
-# Error handler
-trap 'echo -e "\\n \\x1b[1m\\x1b[31m::\\x1b[0m\\x1b[1m Some check failed\\x1b[0m"' ERR
-
-# Parse arguments
+PUSH_CHECK=false
+STRICT=false
+QUIET=false
+FULL_QUIET=false
 OPEN_DOCS=false
+
 for arg in "$@"; do
     case $arg in
-        --open-docs) OPEN_DOCS=true ;;
+        -p | --push-check) PUSH_CHECK=true ;;
+        -s | --strict) STRICT=true ;;
+        -q | --quiet) QUIET=true ;;
+        -Q | --full-quiet) QUIET=true; FULL_QUIET=true ;;
+        -o | --open-docs) OPEN_DOCS=true ;;
         *)
-            echo "Unknown option: $arg"
-            echo "Usage: $0 [--open-docs]"
+            echo -e "\n \x1b[1m\x1b[31m::\x1b[0m\x1b[1m Unknown argument \"$arg\"\x1b[0m\n"
             exit 1
             ;;
     esac
 done
-echo -e " \x1b[1m\x1b[34m::\x1b[0m\x1b[1m Formatting\x1b[0m"
-cargo fmt
 
-echo -e "\n \x1b[1m\x1b[34m::\x1b[0m\x1b[1m Linting"
-cargo clippy -- -D warnings
-
-echo -e "\n \x1b[1m\x1b[34m::\x1b[0m\x1b[1m Testing\x1b[0m"
-cargo test
-
-echo -e "\n \x1b[1m\x1b[34m::\x1b[0m\x1b[1m Security scan\x1b[0m"
-trufflehog git file://.
-gitleaks detect --source . -v
-
-if $OPEN_DOCS; then
-    echo -e "\n \x1b[1m\x1b[34m::\x1b[0m\x1b[1m Opening docs\x1b[0m"
-    cargo doc --open
+if $PUSH_CHECK; then
+    TOTAL_CHECKS=4
 else
-    echo -e "\n \x1b[1m\x1b[34m::\x1b[0m\x1b[1m Generating docs\x1b[0m"
-    cargo doc
+    TOTAL_CHECKS=5
 fi
 
-echo -e "\n \x1b[1m\x1b[32m::\x1b[0m\x1b[1m All checks passed\x1b[0m"
+DONE_CHECKS=0
+
+# Functions
+function begin_check {
+    if $FULL_QUIET; then
+        return 0
+    fi
+    echo -e " \x1b[1m\x1b[34m::\x1b[0m\x1b[1m [$DONE_CHECKS/$TOTAL_CHECKS] $@\x1b[0m" > /dev/tty
+    CURRENT_CHECK=$@
+}
+
+function end_check {
+    ((++DONE_CHECKS))
+    if $FULL_QUIET; then
+        return 0
+    fi
+    echo -e " \x1b[1m\x1b[34m::\x1b[0m\x1b[1m $CURRENT_CHECK done\x1b[0m\n" > /dev/tty
+}
+
+function success {
+    if $FULL_QUIET; then
+        return 0
+    fi
+    echo -e " \x1b[1m\x1b[32m::\x1b[0m\x1b[1m [$DONE_CHECKS/$TOTAL_CHECKS] All checks passed\x1b[0m" > /dev/tty
+}
+
+function run_checks {
+    trap 'handle_error > /dev/tty' ERR
+
+    # Formatting
+    begin_check Formatting
+        if $PUSH_CHECK; then
+            cargo fmt --check
+        else
+            cargo fmt
+        fi
+    end_check
+
+    # Linting
+    begin_check Linting
+        if $PUSH_CHECK; then
+            cargo clippy --all-targets --all-features -- -D warnings -A missing_docs
+        elif $STRICT; then
+            cargo clippy --all-targets --all-features -- -D warnings
+        else
+            cargo clippy --all-targets --all-features
+        fi
+    end_check
+
+    # Testing
+    begin_check Testing
+        cargo test
+    end_check
+
+    # Security scan
+    begin_check Security scan
+        trufflehog git file://.
+        gitleaks detect --source . -v
+    end_check
+
+    # Docs
+    if ! $PUSH_CHECK; then
+        if $OPEN_DOCS; then
+            begin_check Opening docs
+                cargo doc --open
+            end_check
+        else
+            begin_check Generating docs
+                cargo doc
+            end_check
+        fi
+    fi
+
+    # Success
+    success
+}
+
+function handle_error {
+    echo -e "\n \x1b[1m\x1b[31m::\x1b[0m\x1b[1m [$DONE_CHECKS/$TOTAL_CHECKS] $CURRENT_CHECK failed\x1b[0m\n" > /dev/tty
+}
+
+trap 'handle_error > /dev/tty' ERR
+
+if $QUIET; then
+    if $FULL_QUIET; then
+        run_checks > /dev/null 2>&1
+    else
+        run_checks > /dev/null
+    fi
+else
+    run_checks
+fi

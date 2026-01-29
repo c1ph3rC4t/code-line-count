@@ -3,61 +3,69 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   contents: write
 
 jobs:
   build:
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            platform: linux
+            arch: x86_64
+            ext: ""
           - os: windows-latest
             target: x86_64-pc-windows-msvc
+            platform: windows
+            arch: x86_64
+            ext: ".exe"
           - os: macos-latest
             target: x86_64-apple-darwin
+            platform: macos
+            arch: x86_64
+            ext: ""
           - os: macos-latest
             target: aarch64-apple-darwin
-
-    runs-on: ${{ matrix.os }}
+            platform: macos
+            arch: aarch64
+            ext: ""
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Get version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+
+      - name: Get binary name
+        id: binary
+        run: |
+          name=$(grep -A1 '^\[\[bin\]\]' Cargo.toml | grep '^name' | cut -d '"' -f 2 | head -1)
+          if [ -z "$name" ]; then
+            name=$(grep '^name' Cargo.toml | head -1 | cut -d '"' -f 2)
+          fi
+          echo "name=$name" >> $GITHUB_OUTPUT
 
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Rename binary
+      - name: Package binary
         shell: bash
         run: |
           cd target/${{ matrix.target }}/release
-          if [ -f clc.exe ]; then
-            mv clc.exe clc-${{ matrix.target }}.exe
-          else
-            mv clc clc-${{ matrix.target }}
-          fi
+          mv "${{ steps.binary.outputs.name }}${{ matrix.ext }}" \
+             "${{ steps.binary.outputs.name }}-${{ steps.version.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.ext }}"
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: clc-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/clc-${{ matrix.target }}*
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-
-      - name: Create release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: clc-*/clc-*
+          name: ${{ steps.binary.outputs.name }}-${{ matrix.platform }}-${{ matrix.arch }}
+          path: target/${{ matrix.target }}/release/${{ steps.binary.outputs.name }}-${{ steps.version.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.ext }}
