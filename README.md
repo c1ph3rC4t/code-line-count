@@ -1,5 +1,9 @@
 # Code line count (clc)
 
+[![Crates.io](https://img.shields.io/crates/v/code-line-count.svg?style=for-the-badge&logo=rust)](https://crates.io/crates/code-line-count)
+[![CI](https://img.shields.io/github/actions/workflow/status/c1ph3rC4t/code-line-count/ci.yml?style=for-the-badge&logo=github)](https://github.com/c1ph3rC4t/code-line-count/actions)
+[![License](https://img.shields.io/crates/l/code-line-count.svg?style=for-the-badge)](LICENSE)
+
 Counts the total non-empty lines of code in files matching given categories
 or file extensions, recursively.
 
